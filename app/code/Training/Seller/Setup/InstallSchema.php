@@ -66,10 +66,10 @@ class InstallSchema implements InstallSchemaInterface
             $installer->getTable(
                 SellerInterface::TABLE_NAME),
                 [SellerInterface::FIELD_IDENTIFIER],
-                AdapterInterface::INDEX_TYPE_FULLTEXT
+                AdapterInterface::INDEX_TYPE_UNIQUE
             ),
             [SellerInterface::FIELD_IDENTIFIER],
-            ['type' => AdapterInterface::INDEX_TYPE_FULLTEXT]
+            ['type' => AdapterInterface::INDEX_TYPE_UNIQUE]
         )->setComment(
             'Training Seller Table'
         );
