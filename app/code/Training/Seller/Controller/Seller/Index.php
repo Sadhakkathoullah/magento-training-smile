@@ -1,42 +1,87 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: training
- * Date: 11/30/17
- * Time: 9:53 AM
+ * Magento 2 Training Project
+ * Module Training/Seller
  */
-
 namespace Training\Seller\Controller\Seller;
 
-use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\Controller\Result\Raw as ResultRaw;
+use Magento\Framework\View\Result\Page as ResultPage;
+use Magento\Framework\Api\SortOrder;
+use Training\Seller\Api\Data\SellerInterface;
 
+/**
+ * Action : seller/index
+ *
+ */
 class Index extends AbstractAction
 {
     /**
-     * Execute action based on request and return result
+     * Execute the action
      *
-     * Note: Request will be added as operation argument in future
-     *
-     * @return \Magento\Framework\Controller\ResultInterface|ResponseInterface
-     * @throws \Magento\Framework\Exception\NotFoundException
+     * @return ResultPage
      */
     public function execute()
     {
-        $searchResult = $this->sellerRepository->getList();
+        $searchCriteria = $this->getSearchCriteria();
 
-        $html = '<ul>';
-        foreach ($searchResult->getItems() as $seller) {
-            $html.= '<li><a href="/seller/'.$seller->getIdentifier().'.html">'.$seller->getName().'</a></li>';
-        }
-        $html.= '</ul>';
+        // get the list of the sellers
+        $searchResult = $this->sellerRepository->getList($searchCriteria);
 
-        /** @var ResultRaw $result */
-        $result = $this->resultFactory->create(ResultFactory::TYPE_RAW);
-        $result->setContents($html);
+        // save it to the registry
+        $this->registry->register('seller_search_result', $searchResult);
+
+        /** @var ResultPage $result */
+        $result = $this->resultFactory->create(ResultFactory::TYPE_PAGE);
+        $result->getConfig()->getTitle()->set(__('Sellers'));
 
         return $result;
+    }
 
+    /**
+     * Get the search criteria
+     *
+     * @return \Magento\Framework\Api\SearchCriteria
+     */
+    protected function getSearchCriteria()
+    {
+        // get the asked filter name, with protection
+        $searchName = (string) $this->_request->getParam('search_name', '');
+        $searchName = strip_tags($searchName);
+        $searchName = preg_replace('/[\'"%]/', '', $searchName);
+        $searchName = trim($searchName);
+
+        // build the filter, if needed, and add it to the criteria
+        if ($searchName!== '') {
+            // build the filter for the name
+            $filters[] = $this->filterBuilder
+                ->setField(SellerInterface::FIELD_NAME)
+                ->setConditionType('like')
+                ->setValue("%$searchName%")
+                ->create();
+
+            // add the filter to the criteria
+            $this->searchCriteriaBuilder->addFilters($filters);
+        }
+
+        // get the asked sort order, with protection
+        $sortOrder = (string) $this->_request->getParam('sort_order');
+        $availableSort = [
+            SortOrder::SORT_ASC,
+            SortOrder::SORT_DESC,
+        ];
+        if (!in_array($sortOrder, $availableSort)) {
+            $sortOrder = $availableSort[0];
+        }
+
+        // build the sort order and add it to the criteria
+        $sort = $this->sortOrderBuilder
+            ->setField(SellerInterface::FIELD_NAME)
+            ->setDirection($sortOrder)
+            ->create();
+        $this->searchCriteriaBuilder->addSortOrder($sort);
+
+        // build the criteria
+        return $this->searchCriteriaBuilder->create();
     }
 }

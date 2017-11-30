@@ -13,7 +13,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\NotFoundException;
 
 use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\Controller\Result\Raw as ResultRaw;
+use Magento\Framework\View\Result\Page as ResultPage;
 
 class View extends AbstractAction
 {
@@ -39,18 +39,13 @@ class View extends AbstractAction
             throw new NotFoundException(__('The seller does not exist'));
         }
 
-        $html = '
-<h1>'.$currentSeller->getName().'</h1>
-<hr />
-<p>#'.$currentSeller->getIdentifier().'</p>
-<hr />
-<a href="/sellers.html">back to the list</a>
-';
 
+        $this->registry->register('current_seller', $currentSeller);
 
-        /** @var ResultRaw $result */
-        $result = $this->resultFactory->create(ResultFactory::TYPE_RAW);
-        $result->setContents($html);
+        /** @var ResultPage $result */
+        $result = $this->resultFactory->create(ResultFactory::TYPE_PAGE);
+        $result->getConfig()->getTitle()->set(__('Seller "%1"', $currentSeller->getName()));
+
 
         return $result;
     }
