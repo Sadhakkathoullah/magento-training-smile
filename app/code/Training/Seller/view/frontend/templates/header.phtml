@@ -1,0 +1,19 @@
+<?php
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Magento\Framework\View\TemplateEngine\Php $this */
+
+/** @var \Training\Seller\Helper\Url $helper */
+//$helper = $this->helper(\Training\Seller\Helper\Url::class);
+
+$helper = $block->getData('url_helper');
+$url = $helper->getSellersUrl();
+
+?>
+
+<div style="
+    border: solid 2px <?php echo $block->getData('border_color'); ?>;
+    background-color: <?php echo $block->getData('background_color'); ?>;
+    padding-left : 10px;
+    ">
+    <a href="<?php echo $helper->getSellersUrl() ?>"> <?php echo __('Sellers') ?></a>
+</div>
